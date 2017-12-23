@@ -5,7 +5,7 @@ tags:
  - c++
  - template
 categories:
- - cplusplus
+ - c++
 ---
 今天实现了一个很简单的模板类。一开始的思路就和编写普通类一样，定义和实现分离。首先在`calculate.h`文件中定义了模板类类型。
 ```c++

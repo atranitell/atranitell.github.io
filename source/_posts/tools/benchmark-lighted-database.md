@@ -39,7 +39,7 @@ The keys consist of 3 unsigned integers that are converted into big endian bytes
 Writes during the test happen in batches of 1,000 key/value pairs. Each key/value pair is a different series column id up to the number of series to write in the test. The value is a serialized protobuf object. Specifically, it’s a [FieldValue](https://github.com/influxdb/influxdb/blob/master/src/protocol/protocol.proto#L3-L9) with an `int64` set.
 
 Here are the results of a run on 100 million values spread out over 500k columns:
-<center><img src="/image/benchmarks-lighted-database.png" height="50%" /></center>
+<center><img src="/image/benchmarks-lighted-database.png" width="70%" /></center>
 
 A few interesting things come out of these results. LevelDB is the winner on disk space utilization, RocksDB is the winner on reads and deletes, and HyperLevelDB is the winner on writes. On smaller runs (30M or less), LMDB came out on top on most of the metrics except for disk size. This is actually what we’d expect for B-trees: they’re faster the fewer keys you have in them.
 

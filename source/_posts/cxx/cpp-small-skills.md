@@ -4,7 +4,7 @@ date: 2017-06-15 10:59:08
 tags:
  - c++
 categories:
- - cplusplus
+ - c++
 ---
 
 ### 如何获取.cpp文件行号与文件名

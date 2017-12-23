@@ -5,7 +5,7 @@ tags:
  - vs
  - c++
 categories:
- - cplusplus
+ - c++
 ---
 最近遇到一系列的`visual studio c++`的编译问题，在这里将遇到的问题整理下来，以便未来遇到时能够进行参考。
 

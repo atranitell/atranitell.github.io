@@ -5,7 +5,7 @@ tags:
  - c++
  - memory
 categories:
- - cplusplus
+ - c++
 ---
 
 一个由`C/C++`编译程序占用的内存分为以下几个部分：

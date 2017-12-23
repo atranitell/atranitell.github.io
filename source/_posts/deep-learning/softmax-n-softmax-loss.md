@@ -4,7 +4,7 @@ date: 2017-04-17 10:09:14
 tags:
  - cnn
 categories:
- - deep-learning
+ - deep learning
 ---
 
 最近一直在和学校的老师做Deep Learning有关的课题，虽然说是在做学术上的事情，可是大多数仍然是工程方面的。现在Deep Learning的一个很大的趋势是工程化。虽然学术界有很多看起来很漂亮的理论和方法，但在实际使用中，用的往往不多，反倒是经过历史检验的那么几种简单朴素的方法却是用途最为广泛。这也是一件挺有意思的事情，越复杂的问题反倒需要越简单的想法去解决，比如`SGD`，`Dropout`，`BN`等等，都不是很复杂的模型，但却是用途最为广泛的技巧。另一个方面是，算法的变革所提升的精度远远不如数据集的扩增，网络的增大收益来的快和简单。因此，工业界往往喜欢boost网络的训练速度，增大数据集，然后不断的调参。
@@ -12,7 +12,7 @@ categories:
 只是最近的一些感慨，我还是蛮喜欢数学上精巧的东西。有意思的事情，前两天一个初中小女孩问我数学题，本来以为信手捏来，结果愣生生把一道简单的集合题做成了解析几何，还需要求高次方程，汗颜。不要问我结果，我已经让那个孩子去问老师了，回来给我讲一讲。这两天把以前保存的文章拿出来，好好咀嚼一下。过去看到一篇好的文章总爱收藏起来却很久再也没有翻开过，似乎看了很多文章，实际上没有经历过真正的推敲和实践就是在自欺欺人。
 
 ### Softmax
-> 转载：http://freemind.pluskid.org/machine-learning/softmax-vs-softmax-loss-numerical-stability/
+> http://freemind.pluskid.org/machine-learning/softmax-vs-softmax-loss-numerical-stability/
 
 Softmax一般会出现在网络的最后一层，用于输出目标类的概率分布，往往用于分类问题。它的定义如下：$ \sigma(z)=(\sigma\_1(z),\dots,\sigma\_m(z)) $
 $$ \sigma\_i(z)=\frac{\exp(z\_i)}{\sum\_{j=1}^{m}\exp(z\_j)}, \quad i=1,\dots,m $$
@@ -28,7 +28,7 @@ $$ \tilde{l}(y,z) = -\log\left(\frac{e^{z\_y}}{\sum\_{j=1}^{m}e^{z\_j}} \right) 
 
 ### Back Prop
 假设存在一个三层的神经网络，如下图：
-<center><img src="/image/3nn.png" height="200" /></center>
+<center><img src="/image/3nn.png" width="70%" /></center>
 
 除了最开始的数据层 $L^0$ 之外，每一层都有输入节点和输出节点，我们用 $I\_2^1$ 表示第一层的第二个输入节点，$O_3^1$ 表示第一层的第三个输出节点，每一层的输入和输出节点数量并不一定要一样多，但通常情况上一层的输出往往就是下一层结点输入的复制，比如 $I\_3^2 = O\_3^1$，因为所有的计算都是发生在每一层的内部。所以对普通的神经网络，通常每一层进行的计算都是一个线性映射再加一个`activation function`，例如`sigmoid`：
 $$ O\_i^1 = S(\sum\_{j=1}^{3}w\_{ij}^{1}I\_{j}^{1}+b\_i^1) = S\left(\left\langle w\_i^1, I^1 \right\rangle+b\_i^1\right) $$

@@ -6,8 +6,8 @@
 title: THE ISLET
 subtitle: 关山万里，仗剑行歌
 description: Life is Wonderful!
-author: JIN
-language:
+author: Kai JIN
+language: en
 timezone:
 
 # URL
@@ -40,7 +40,7 @@ future: true
 highlight:
   enable: true
   line_number: true
-  auto_detect: false
+  auto_detect: true
   tab_replace:
 
 # Category & Tag
@@ -63,7 +63,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: yilia
+theme: next
 
 disqus_shortname: starsci
 
@@ -71,7 +71,9 @@ disqus_shortname: starsci
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type:
+  type: git
+  repo: https://github.com/atranitell/atranitell.github.io.git
+  branch: master
 
 jsonContent:
   meta: false
