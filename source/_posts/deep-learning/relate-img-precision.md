@@ -6,10 +6,10 @@ tags:
  - image
  - format
 categories:
- - computer vision
+ - deep learning
 ---
 
-最近遇到一些有关Image图像格式的问题，精度确实在一定程度上很影响识别的精度。以前没有太过注意`PIL`库的使用方式，直到自己构建了一个tensorflow example之后才发现accuracy的不一致。这里仔细探究一下图像格式的一些问题。
+最近遇到一些有关Image图像格式的问题，精度确实在一定程度上很影响识别的精度。以前没有太过注意 `PIL` 库的使用方式，直到自己构建了一个tensorflow example之后才发现accuracy的不一致。这里仔细探究一下图像格式的一些问题。
 ```python
 from PIL import Image
 import numpy as np
