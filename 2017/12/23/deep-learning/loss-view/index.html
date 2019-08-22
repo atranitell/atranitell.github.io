@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="KL散度和交叉熵的区别 在上一篇关于 GAN 理论的文章中提到了 KL 散度以及说它也可以称为交叉熵。但实际上，交叉熵与它有一些微小的差异。我们先回顾一下 KL 散度的公式：\[D(p\|q)=\sum\limits_{i=1}^{n}p(x)\log\frac{p(x)}{q(x)} = \sum\limits_{i=1}^{n}p(x)\log p(x) - \sum\limits_{i=1}">
+<meta name="keywords" content="theory,entropy,loss">
+<meta property="og:type" content="article">
+<meta property="og:title" content="损失函数概览">
+<meta property="og:url" content="http://kaijin.ai/2017/12/23/deep-learning/loss-view/index.html">
+<meta property="og:site_name" content="THE ISLET">
+<meta property="og:description" content="KL散度和交叉熵的区别 在上一篇关于 GAN 理论的文章中提到了 KL 散度以及说它也可以称为交叉熵。但实际上，交叉熵与它有一些微小的差异。我们先回顾一下 KL 散度的公式：\[D(p\|q)=\sum\limits_{i=1}^{n}p(x)\log\frac{p(x)}{q(x)} = \sum\limits_{i=1}^{n}p(x)\log p(x) - \sum\limits_{i=1}">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://kaijin.ai/image/loss-function-l2-weight.png">
+<meta property="og:updated_time" content="2019-08-22T08:37:12.804Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="损失函数概览">
+<meta name="twitter:description" content="KL散度和交叉熵的区别 在上一篇关于 GAN 理论的文章中提到了 KL 散度以及说它也可以称为交叉熵。但实际上，交叉熵与它有一些微小的差异。我们先回顾一下 KL 散度的公式：\[D(p\|q)=\sum\limits_{i=1}^{n}p(x)\log\frac{p(x)}{q(x)} = \sum\limits_{i=1}^{n}p(x)\log p(x) - \sum\limits_{i=1}">
+<meta name="twitter:image" content="http://kaijin.ai/image/loss-function-l2-weight.png">
+  <link rel="canonical" href="http://kaijin.ai/2017/12/23/deep-learning/loss-view/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>损失函数概览 | THE ISLET</title>
+  <meta name="generator" content="Hexo 3.9.0">
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">THE ISLET</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">Amor Mundi</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-schedule">
+      
+    
+
+    <a href="/schedule/" rel="section"><i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>Schedule</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kaijin.ai/2017/12/23/deep-learning/loss-view/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kai JIN">
+      <meta itemprop="description" content="Life is Wonderful!">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="THE ISLET">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">损失函数概览
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2017-12-23 11:48:31" itemprop="dateCreated datePublished" datetime="2017-12-23T11:48:31+08:00">2017-12-23</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-08-22 16:37:12" itemprop="dateModified" datetime="2019-08-22T16:37:12+08:00">2019-08-22</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/deep-learning/" itemprop="url" rel="index"><span itemprop="name">deep learning</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="kl散度和交叉熵的区别">KL散度和交叉熵的区别</h3>
+<p>在上一篇关于 <code>GAN</code> 理论的文章中提到了 <code>KL</code> 散度以及说它也可以称为交叉熵。但实际上，交叉熵与它有一些微小的差异。我们先回顾一下 <code>KL</code> 散度的公式：<span class="math display">\[D(p\|q)=\sum\limits_{i=1}^{n}p(x)\log\frac{p(x)}{q(x)} = \sum\limits_{i=1}^{n}p(x)\log p(x) - \sum\limits_{i=1}^{n}p(x)\log q(x)\]</span> 我们注意到，其实前半部分在实际中相当于一个常数项，在给定 <span class="math inline">\(p\)</span> 分布的情况下。后半部分我们称为交叉熵，它衡量了分布 <span class="math inline">\(p\)</span> 和 <span class="math inline">\(q\)</span> 的距离。然而，在深度学习优化过程中，常数项不影响优化的结果，所以我们往往采用简化的形式。</p>
+<p>正式的说，交叉熵(cross entropy)定义为：<span class="math display">\[H(p,q)=-\int p(x)\log q(x)dx \]</span> 其中，<span class="math inline">\(p(x\)</span>) 是数据的真实分布的概率，<span class="math inline">\(q(x)\)</span> 是由数据计算得到的概率分布。我们期望计算得到的分布尽可能的接近真实分布。下面，我们将正式的介绍损失函数，它的变化形式，以及在DNN中的来源，影响，和作用。</p>
+<h3 id="损失函数">损失函数</h3>
+<p>在以前的一篇文章中介绍了反向传播算法的公式推导，然而Loss Function往往位于网络的顶层。因此，我们在这里只考虑顶层设计以及前一层的前向传播和方向传播。假设网络最后一层 <span class="math inline">\(l\)</span> 的线性输出为 <span class="math inline">\(a^{(l+1)}=W^{(l)}x^{(l)}+b^{(l)}\)</span>，非线性映射函数为 <span class="math inline">\(\widetilde{y}=f(a^{(l+1)})\)</span>。Loss Function是衡量预测分布与真实分布的一种度量手段，这里我们用 <span class="math inline">\(L=D(y, \widetilde{y})\)</span> 表示与目标分布的距离。在反向传播阶段，我们需要求出前层梯度值： <span class="math display">\[
+\begin{align}
+\nabla_{W^{(l)}}L=\frac{\partial L}{\partial a^{(l+1)}}\frac{\partial a^{(l+1)}}{\partial W^{(l)}}=\delta^{(l+1)}x^{(l)} \nonumber \\
+\nabla_{b^{(l)}}L=\frac{\partial L}{\partial a^{(l+1)}}\frac{\partial a^{(l+1)}}{\partial b^{(l)}}=\delta^{(l+1)}
+\end{align}
+\]</span></p>
+<h3 id="l2-loss">L2 Loss</h3>
+<p>现在，我们考虑一种传统的损失函数，比如 <code>l2-loss</code>，其距离分布定义为：<span class="math display">\[D_{l2}(y, \widetilde{y})=\\|y-\widetilde{y}\\|_2^2\]</span> 在这里 <span class="math inline">\(y\)</span> 和 <span class="math inline">\(\widetilde{y}\)</span> 可以是一个标量也可以是一个向量。将该损失函数代入至反向传播过程中，易得： <span class="math display">\[
+\begin{align} 
+\delta^{(l+1)} &amp;= \frac{\partial D_{l2}}{\partial a^{(l+1)}} = \frac{\partial D_{l2}}{\partial \widetilde{y}}\frac{\partial \widetilde{y}}{\partial a^{(l+1)}} \nonumber \\
+&amp;= -2(y-\widetilde{y})f&#39;(a^{(l+1)})
+\end{align}
+\]</span></p>
+<p>如果考虑网络的目标输出采用 <code>sigmoid</code> 激活函数，<span class="math inline">\(a^{(l+1)}\)</span> 简化为 <span class="math inline">\(x\)</span>，即：<span class="math display">\[ \widetilde{y} = {\rm sigmoid}(x) = \frac{1}{1+e^{-x}} \]</span> 那么其微分形式为：<span class="math display">\[f&#39;(x)= \frac{e^{-x}}{(1+e^{-x})^2}=f(x)(1-f(x)) \]</span> 将其代入至反向传播过程中：<span class="math display">\[ \delta^{(l+1)} = -2(y-f(a^{(l+1)}))f(a^{(l+1)})(1-f(a^{(l+1)})) \]</span></p>
+那么，对于每一个线性输出，最终梯度的更新量是多少呢？在这里，我们假定一个二分类问题，即 <span class="math inline">\(y\in{1, 0}\)</span>，结果如下图所示。
+<center>
+<img src="/image/loss-function-l2-weight.png" width="100%">
+</center>
+<p>这是一个很有趣的结果，我们可以看到 <span class="math inline">\(y=1, y=0\)</span> 在 <span class="math inline">\(W\)</span> 的梯度值是关于 <span class="math inline">\(y\)</span> 轴对称。也就是说对任意的 <span class="math inline">\(x\)</span>，接近 <span class="math inline">\(1\)</span> 即远离 <span class="math inline">\(0\)</span>，对于前者更新值为正，对于后者为负，非常的reasonable。这里，我看到网上有些博客说因为 <code>l2-loss</code> 会导致收敛变慢，所以采用交叉熵作为损失函数，我觉得是有一些问题的，在这里持保留态度。</p>
+<h3 id="cross-entropy-loss">Cross-Entropy Loss</h3>
+<p>刚刚提到了 <code>l2-loss</code> ，我们从其推导出交叉熵损失函数的公式。考虑梯度的一般形式： <span class="math display">\[\delta^{(l+1)}=\frac{\partial L}{\partial \widetilde{y}}\widetilde{y}(1-\widetilde{y})\]</span> 在 <code>l2-loss</code> 的形式下，<span class="math display">\[\delta^{(l+1)}=-2(y-\widetilde{y})\widetilde{y}(1-\widetilde{y})\]</span> 那么我们是否有可能通过某种手段，消去后面的 <span class="math inline">\(\widetilde{y}(1-\widetilde{y})\)</span>。也就是说，我们希望构造一个 <span class="math inline">\(D_e\)</span>，它满足：<span class="math inline">\(\delta^{(l+1)} = -2(y-\widetilde{y})\)</span>。这样，代入到梯度的一般形式中，可得：<span class="math display">\[ \frac{\partial D_{e}}{\partial \widetilde{y}}\widetilde{y}(1-\widetilde{y}) = -2(y-\widetilde{y}) \]</span></p>
+<p>下面，我们需要解 <span class="math inline">\(D_e\)</span>，相当于一个不定积分。证明如下： <span class="math display">\[
+\begin{align}
+D_e &amp;= -2\int\frac{y-\widetilde{y}}{\widetilde{y}(1-\widetilde{y})}d\widetilde{y} \nonumber \\
+&amp; = -2\int[\frac{y}{\widetilde{y}}+\frac{y-1}{1-\widetilde{y}}]d\widetilde{y} \nonumber \\
+&amp; = -2[\int yd\log\widetilde{y}+\int(1-y)d\log(1-\widetilde{y})] \nonumber \\
+&amp; = -2[y\log\widetilde{y}+(1-y)\log(1-\widetilde{y})] + C \nonumber \\
+&amp; \approx -y\log\widetilde{y}-(1-y)\log(1-\widetilde{y})
+\end{align}
+\]</span></p>
+<p>注意，以上结果都是在激活函数为sigmoid的情况下推导而出。我们将线性输出值 $= $ 代入： <span class="math display">\[
+\begin{align}
+D_e &amp;= -y\log\widetilde{y}-(1-y)\log(1-\widetilde{y}) \nonumber \\
+&amp;= -y\log\frac{1}{1+e^{-a}} - (1-y)\log(1-\frac{1}{1+e^{-a}})  \nonumber \\
+&amp;= \log(1+e^{-a})+a(1-y)
+\end{align}
+\]</span></p>
+<p>上式便是在tensorflow中的简化求解形式。尽管观察直接的更新率，由 <span class="math inline">\(-2(y-\widetilde{y})\widetilde{y}(1-\widetilde{y})\)</span> 变成了 <span class="math inline">\(-(y-\widetilde{y})\)</span> 增加了反向传播的梯度值。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/theory/" rel="tag"># theory</a>
+            
+              <a href="/tags/entropy/" rel="tag"># entropy</a>
+            
+              <a href="/tags/loss/" rel="tag"># loss</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2017/12/22/deep-learning/gan-basic/" rel="next" title="GAN的理论基础">
+                  <i class="fa fa-chevron-left"></i> GAN的理论基础
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc" data-target="post-toc-wrap">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc">
+            <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#kl散度和交叉熵的区别"><span class="nav-number">1.</span> <span class="nav-text">KL散度和交叉熵的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#损失函数"><span class="nav-number">2.</span> <span class="nav-text">损失函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#l2-loss"><span class="nav-number">3.</span> <span class="nav-text">L2 Loss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cross-entropy-loss"><span class="nav-number">4.</span> <span class="nav-text">Cross-Entropy Loss</span></a></li></ol></div>
+          </div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kai JIN</p>
+  <div class="site-description motion-element" itemprop="description">Life is Wonderful!</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://github.com/atranitell" title="GitHub &rarr; https://github.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="mailto:atranitell@gmail.com" title="E-Mail &rarr; mailto:atranitell@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://www.facebook.com/atranitell" title="FB Page &rarr; https://www.facebook.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-facebook"></i></a>
+      </span>
+    
+  </div>
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kai JIN</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+<script src="/js/utils.js?v=7.3.0"></script>
+<script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>

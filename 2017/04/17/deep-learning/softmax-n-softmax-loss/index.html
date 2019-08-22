@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="最近一直在和学校的老师做Deep Learning有关的课题，虽然说是在做学术上的事情，可是大多数仍然是工程方面的。现在Deep Learning的一个很大的趋势是工程化。虽然学术界有很多看起来很漂亮的理论和方法，但在实际使用中，用的往往不多，反倒是经过历史检验的那么几种简单朴素的方法却是用途最为广泛。这也是一件挺有意思的事情，越复杂的问题反倒需要越简单的想法去解决，比如SGD，Dropout，B">
+<meta name="keywords" content="cnn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Softmax vs. Sotmax-Loss 数值稳定性">
+<meta property="og:url" content="http://kaijin.ai/2017/04/17/deep-learning/softmax-n-softmax-loss/index.html">
+<meta property="og:site_name" content="THE ISLET">
+<meta property="og:description" content="最近一直在和学校的老师做Deep Learning有关的课题，虽然说是在做学术上的事情，可是大多数仍然是工程方面的。现在Deep Learning的一个很大的趋势是工程化。虽然学术界有很多看起来很漂亮的理论和方法，但在实际使用中，用的往往不多，反倒是经过历史检验的那么几种简单朴素的方法却是用途最为广泛。这也是一件挺有意思的事情，越复杂的问题反倒需要越简单的想法去解决，比如SGD，Dropout，B">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://kaijin.ai/image/3nn.png">
+<meta property="og:updated_time" content="2019-08-22T08:37:12.804Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Softmax vs. Sotmax-Loss 数值稳定性">
+<meta name="twitter:description" content="最近一直在和学校的老师做Deep Learning有关的课题，虽然说是在做学术上的事情，可是大多数仍然是工程方面的。现在Deep Learning的一个很大的趋势是工程化。虽然学术界有很多看起来很漂亮的理论和方法，但在实际使用中，用的往往不多，反倒是经过历史检验的那么几种简单朴素的方法却是用途最为广泛。这也是一件挺有意思的事情，越复杂的问题反倒需要越简单的想法去解决，比如SGD，Dropout，B">
+<meta name="twitter:image" content="http://kaijin.ai/image/3nn.png">
+  <link rel="canonical" href="http://kaijin.ai/2017/04/17/deep-learning/softmax-n-softmax-loss/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Softmax vs. Sotmax-Loss 数值稳定性 | THE ISLET</title>
+  <meta name="generator" content="Hexo 3.9.0">
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">THE ISLET</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">Amor Mundi</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-schedule">
+      
+    
+
+    <a href="/schedule/" rel="section"><i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>Schedule</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kaijin.ai/2017/04/17/deep-learning/softmax-n-softmax-loss/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kai JIN">
+      <meta itemprop="description" content="Life is Wonderful!">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="THE ISLET">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Softmax vs. Sotmax-Loss 数值稳定性
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2017-04-17 10:09:14" itemprop="dateCreated datePublished" datetime="2017-04-17T10:09:14+08:00">2017-04-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-08-22 16:37:12" itemprop="dateModified" datetime="2019-08-22T16:37:12+08:00">2019-08-22</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/deep-learning/" itemprop="url" rel="index"><span itemprop="name">deep learning</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近一直在和学校的老师做Deep Learning有关的课题，虽然说是在做学术上的事情，可是大多数仍然是工程方面的。现在Deep Learning的一个很大的趋势是工程化。虽然学术界有很多看起来很漂亮的理论和方法，但在实际使用中，用的往往不多，反倒是经过历史检验的那么几种简单朴素的方法却是用途最为广泛。这也是一件挺有意思的事情，越复杂的问题反倒需要越简单的想法去解决，比如<code>SGD</code>，<code>Dropout</code>，<code>BN</code>等等，都不是很复杂的模型，但却是用途最为广泛的技巧。另一个方面是，算法的变革所提升的精度远远不如数据集的扩增，网络的增大收益来的快和简单。因此，工业界往往喜欢boost网络的训练速度，增大数据集，然后不断的调参。</p>
+<p>只是最近的一些感慨，我还是蛮喜欢数学上精巧的东西。有意思的事情，前两天一个初中小女孩问我数学题，本来以为信手捏来，结果愣生生把一道简单的集合题做成了解析几何，还需要求高次方程，汗颜。不要问我结果，我已经让那个孩子去问老师了，回来给我讲一讲。这两天把以前保存的文章拿出来，好好咀嚼一下。过去看到一篇好的文章总爱收藏起来却很久再也没有翻开过，似乎看了很多文章，实际上没有经历过真正的推敲和实践就是在自欺欺人。</p>
+<h3 id="softmax">Softmax</h3>
+<blockquote>
+<p>http://freemind.pluskid.org/machine-learning/softmax-vs-softmax-loss-numerical-stability/</p>
+</blockquote>
+<p>Softmax一般会出现在网络的最后一层，用于输出目标类的概率分布，往往用于分类问题。它的定义如下：$ (z)=(_1(z),,_m(z)) $ <span class="math display">\[ \sigma_i(z)=\frac{\exp(z_i)}{\sum_{j=1}^{m}\exp(z_j)}, \quad i=1,\dots,m \]</span> 它在<code>Logistic Regression</code>里起到的作用是<code>线性预测值</code>转化为类别概率：假设 <span class="math inline">\(z_i=w_i^T+b_i\)</span> 是第 <span class="math inline">\(i\)</span> 个类别的线性预测结果，再将其归一化到 <span class="math inline">\((0, 1)\)</span> 区间，现在每个 <span class="math inline">\(o_i=\sigma_i(z)\)</span> 就可以解释成观察到的数据 <span class="math inline">\(x\)</span> 属于类别 <span class="math inline">\(i\)</span> 的概率，或者称作似然 (Likelihood)。</p>
+<p>然后Logistic Regression的目标函数是根据最大似然原则来建立的，假设数据 <span class="math inline">\(x\)</span> 所对应的类别为 <span class="math inline">\(y\)</span> ，则根据我们刚才的计算最大似然就是要最大化 <span class="math inline">\(o_y\)</span> 的值(或者说，最小化 <span class="math inline">\(-\log(o_y)\)</span> 也叫做<code>negative log-likelihood</code>)，如下： <span class="math display">\[ l(y, o) = -\log(o_y) \]</span></p>
+<p>而<code>Softmax-loss</code>就是将两者结合起来，把 <span class="math inline">\(o_y\)</span> 的定义展开即可： <span class="math display">\[ \tilde{l}(y,z) = -\log\left(\frac{e^{z_y}}{\sum_{j=1}^{m}e^{z_j}} \right) = \log\left(\sum_{j=1}^{m}e^{z_j}\right) - z_y \]</span></p>
+<p>没有任何fancy的东西，比如如果我们要写一个Logistic Regression的solver，那么因为要处理的就是这个东西，比较自然地就可以将整个东西合在一起来考虑，或者甚至将<span class="math inline">\(z_i=w_i^T+b_i\)</span>的定义直接一起带进去然后对<span class="math inline">\(w\)</span>和<span class="math inline">\(b\)</span>进行求导来得到Gradient Descent的update rule，例如我们之前介绍Gradient Descent的时候举的两类Logistic Regression的例子就是这样做的。</p>
+<h3 id="back-prop">Back Prop</h3>
+假设存在一个三层的神经网络，如下图：
+<center>
+<img src="/image/3nn.png" width="70%">
+</center>
+<p>除了最开始的数据层 <span class="math inline">\(L^0\)</span> 之外，每一层都有输入节点和输出节点，我们用 <span class="math inline">\(I_2^1\)</span> 表示第一层的第二个输入节点，<span class="math inline">\(O_3^1\)</span> 表示第一层的第三个输出节点，每一层的输入和输出节点数量并不一定要一样多，但通常情况上一层的输出往往就是下一层结点输入的复制，比如 <span class="math inline">\(I_3^2 = O_3^1\)</span>，因为所有的计算都是发生在每一层的内部。所以对普通的神经网络，通常每一层进行的计算都是一个线性映射再加一个<code>activation function</code>，例如<code>sigmoid</code>： <span class="math display">\[ O_i^1 = S(\sum_{j=1}^{3}w_{ij}^{1}I_{j}^{1}+b_i^1) = S\left(\left\langle w_i^1, I^1 \right\rangle+b_i^1\right) \]</span> 现在要对参数 <span class="math inline">\(w_{ij}^1\)</span> 进行求导计算它的gradient来进行gradient descent一类的参数优化，利用链式法则如下： <span class="math display">\[ \frac{\partial{f}}{\partial{w_{ij}^1}} = \sum_{k=1}^{3}\frac{\partial{O_k^1}}{\partial{w_{ij}^1}}\cdot\frac{\partial{f}}{\partial{O_k^1}} \]</span> 注意到 $ / $ 这一项只是和网络的第一层结构有关，只需要知道该结构内部的参数即可计算，而后面一部分相当于 $ / = / $ 即这一层的输出等于下一层的输入。因此，后一项只和下一层的结构和参数有关，不需要知道任何第一层有关的信息。</p>
+<p>因此整个网络的参数的gradient的计算方式是从顶层出发，在 <span class="math inline">\(L^p\)</span> 层的时候，会拿到从 <span class="math inline">\(L^{p+1}\)</span> 得到的<span class="math inline">\(\partial{f}/\partial{I^{p+1}}\)</span> 也就是 <span class="math inline">\(\partial{f}/{\partial{O^p}}\)</span>， 然后需要做两个计算：一个是自己层内的参数的gradient，比如是一个不同的<code>full connect layer</code>，则会像上文那样计算，如果没有则继续向下传递。根据链式规则，我们可以计算： <span class="math display">\[ \frac{\partial{f}}{\partial{O_i^{p-1}}} = \frac{\partial{f}}{\partial{I_i^p}} = \sum_{k=1}^{n}\frac{\partial{O_k^p}}{\partial{I_i^p}}\cdot\frac{\partial{f}}{\partial{O_k^p}} \]</span></p>
+<h3 id="softmax-loss">Softmax-Loss</h3>
+<p>搞清楚Back Prop之后让我们回到Softmax-Loss层，由于该层没有参数，我们只需要计算向后传递的导数就可以了，此外由于该层是最顶层，所以不使用链式法则就可以计算对于最终输出(loss)的导数。我们用 <span class="math inline">\(\tilde{l}(y,z)\)</span> 表示，其中一个是true label <span class="math inline">\(y\)</span>，一个是网络层的输出值 <span class="math inline">\(z\)</span>。由于链式法则的缘故，我们只需要计算 <span class="math inline">\(\partial{\tilde{l}}/\partial{z}\)</span> 然后丢给下一层即可。因此： <span class="math display">\[ \frac{\partial\tilde{l}(y,z)}{\partial{z_k}} = \frac{\exp(z_k)}{\sum_{j=1}^m\exp(z_j)} - \delta_{ky} = \sigma_{k}(z)-\delta_{ky} \]</span> 其中 <span class="math inline">\(\sigma_{k}(z)\)</span> 是Softamx-Loss的中间步骤计算的结果，而 <span class="math inline">\(\delta_{ky}\)</span>，当 <span class="math inline">\(k=y\)</span> 时为 <span class="math inline">\(1\)</span>，当 <span class="math inline">\(k \ne y\)</span> 时为 <span class="math inline">\(0\)</span>，其实就是是否作为变量(常数)对 <span class="math inline">\(z_k\)</span> 求导。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/cnn/" rel="tag"># cnn</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2017/10/21/deep-learning/back-propagation/" rel="prev" title="深度学习中的反向传播算法">
+                  深度学习中的反向传播算法 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc" data-target="post-toc-wrap">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc">
+            <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#softmax"><span class="nav-number">1.</span> <span class="nav-text">Softmax</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#back-prop"><span class="nav-number">2.</span> <span class="nav-text">Back Prop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#softmax-loss"><span class="nav-number">3.</span> <span class="nav-text">Softmax-Loss</span></a></li></ol></div>
+          </div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kai JIN</p>
+  <div class="site-description motion-element" itemprop="description">Life is Wonderful!</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://github.com/atranitell" title="GitHub &rarr; https://github.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="mailto:atranitell@gmail.com" title="E-Mail &rarr; mailto:atranitell@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://www.facebook.com/atranitell" title="FB Page &rarr; https://www.facebook.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-facebook"></i></a>
+      </span>
+    
+  </div>
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kai JIN</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+<script src="/js/utils.js?v=7.3.0"></script>
+<script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>

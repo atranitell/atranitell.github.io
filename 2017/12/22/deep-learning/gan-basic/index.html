@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: 'Copy',
+      copy_success: 'Copied',
+      copy_failure: 'Copy failed'
+    }
+  };
+</script>
+
+  <meta name="description" content="最大似然估计 Maximum Likelihood Estimation 考虑一个给定的数据分布 \(P_{d}(x)\) 和一个已知的分布 \(P_g(x;\theta)\) 由 \(\theta\) 参数化。我们希望优化 \(\theta\) 使得 \(P_g(x;\theta)\) 接近 \(P_{d}(x)\)。然后，我们从 \(P_{d}(x)\) 采样 \(\{x^1, x^2, \d">
+<meta name="keywords" content="gan,theory">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GAN的理论基础">
+<meta property="og:url" content="http://kaijin.ai/2017/12/22/deep-learning/gan-basic/index.html">
+<meta property="og:site_name" content="THE ISLET">
+<meta property="og:description" content="最大似然估计 Maximum Likelihood Estimation 考虑一个给定的数据分布 \(P_{d}(x)\) 和一个已知的分布 \(P_g(x;\theta)\) 由 \(\theta\) 参数化。我们希望优化 \(\theta\) 使得 \(P_g(x;\theta)\) 接近 \(P_{d}(x)\)。然后，我们从 \(P_{d}(x)\) 采样 \(\{x^1, x^2, \d">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://kaijin.ai/image/basic-gan-maxmin.png">
+<meta property="og:updated_time" content="2019-08-22T08:37:12.803Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GAN的理论基础">
+<meta name="twitter:description" content="最大似然估计 Maximum Likelihood Estimation 考虑一个给定的数据分布 \(P_{d}(x)\) 和一个已知的分布 \(P_g(x;\theta)\) 由 \(\theta\) 参数化。我们希望优化 \(\theta\) 使得 \(P_g(x;\theta)\) 接近 \(P_{d}(x)\)。然后，我们从 \(P_{d}(x)\) 采样 \(\{x^1, x^2, \d">
+<meta name="twitter:image" content="http://kaijin.ai/image/basic-gan-maxmin.png">
+  <link rel="canonical" href="http://kaijin.ai/2017/12/22/deep-learning/gan-basic/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>GAN的理论基础 | THE ISLET</title>
+  <meta name="generator" content="Hexo 3.9.0">
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">THE ISLET</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">Amor Mundi</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-schedule">
+      
+    
+
+    <a href="/schedule/" rel="section"><i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>Schedule</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://kaijin.ai/2017/12/22/deep-learning/gan-basic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Kai JIN">
+      <meta itemprop="description" content="Life is Wonderful!">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="THE ISLET">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">GAN的理论基础
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              
+                
+              
+
+              <time title="Created: 2017-12-22 09:50:31" itemprop="dateCreated datePublished" datetime="2017-12-22T09:50:31+08:00">2017-12-22</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-08-22 16:37:12" itemprop="dateModified" datetime="2019-08-22T16:37:12+08:00">2019-08-22</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/deep-learning/" itemprop="url" rel="index"><span itemprop="name">deep learning</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="最大似然估计-maximum-likelihood-estimation">最大似然估计 Maximum Likelihood Estimation</h3>
+<p>考虑一个给定的数据分布 <span class="math inline">\(P_{d}(x)\)</span> 和一个已知的分布 <span class="math inline">\(P_g(x;\theta)\)</span> 由 <span class="math inline">\(\theta\)</span> 参数化。我们希望优化 <span class="math inline">\(\theta\)</span> 使得 <span class="math inline">\(P_g(x;\theta)\)</span> 接近 <span class="math inline">\(P_{d}(x)\)</span>。然后，我们从 <span class="math inline">\(P_{d}(x)\)</span> 采样 <span class="math inline">\(\{x^1, x^2, \dots, x^m\}\)</span>，生成样本的似然度定义为: <span class="math display">\[ L = \prod\limits_{i=1}^{m}P_g(x;\theta) \]</span> 找到一个 <span class="math inline">\(\theta^*\)</span> 最大化这个似然估计: <span class="math display">\[
+\begin{align}
+\theta^*&amp;=\arg\max_\theta\prod\limits_{i=1}^{m}P_g(x^i;\theta)=\arg\max_\theta\log\prod\limits_{i=1}^{m}P_g(x^i;\theta) \nonumber \\
+&amp;=\arg\max_{\theta}\sum\limits_{i=1}^{m}\log P_g(x^i;\theta), x \sim P_{d}(x) \nonumber \\
+&amp;\approx\arg\max_\theta\mathbb{E}_{x\sim P_{d}}[\log P_g(x;\theta)]
+\end{align}
+\]</span></p>
+<p>这里, 为进一步说明，我们需要引入一个概念 <code>KL散度</code>, 或 <code>Kullback–Leibler divergence</code>.</p>
+<h3 id="kl-散度">KL 散度</h3>
+<p>KL散度又称为相对熵，首先信息熵反映了一个系统的有序程度，一个系统越是有序，它的信息熵就越低，反之越高。如果一个随机变量 <span class="math inline">\(X\)</span> 的可能取值为 <span class="math inline">\(X=\{x_1,x_2,\dots,x_n\}\)</span>，对应的概率为 <span class="math inline">\(p(X=x_i) (i=1,2,\dots,n)\)</span>，则随机变量 <span class="math inline">\(X\)</span> 的熵定义为: <span class="math display">\[ H(X)=-\sum\limits_{i=1}^{n}p(x_i)\log p(x_i) \]</span></p>
+<p>相对熵又称互熵，交叉熵，鉴别信息，Kullback熵，Kullback-Leible散度等。设 <span class="math inline">\(p(x)\)</span> 和 <span class="math inline">\(q(x)\)</span> 是 <span class="math inline">\(X\)</span> 取值的两个概率分布，则 <span class="math inline">\(p\)</span> 对 <span class="math inline">\(q\)</span> 的相对熵为：<span class="math display">\[D(p\|q)=\sum\limits_{i=1}^{n}p(x)\log\frac{p(x)}{q(x)} = \sum\limits_{i=1}^{n}p(x)\log p(x) - \sum\limits_{i=1}^{n}p(x)\log q(x)\]</span> 在一定程度上，熵可以度量两个随机变量的距离。KL散度是两个概率分布 <span class="math inline">\(P\)</span> 和 <span class="math inline">\(Q\)</span> 差别的非对称性的度量。KL散度是用来度量使用基于 <span class="math inline">\(Q\)</span> 的编码来编码来自 <span class="math inline">\(P\)</span> 的样本平均所需的额外的位元数。典型情况下，<span class="math inline">\(P\)</span> 表示数据的真实分布，<span class="math inline">\(Q\)</span> 表示数据的理论分布，模型分布，或 <span class="math inline">\(P\)</span> 的近似分布。</p>
+<p>好的，回归GAN的主题。刚刚我们已经推导出最大似然估计下的参数 <span class="math inline">\(\theta^*\)</span> 的表示。然而，在网络中，我们需要最小化去优化这个参数。因此，我们需要利用<code>KL散度</code>完成这件事情。<span class="math display">\[ \theta^*\approx\arg\max_\theta\mathbb{E}_{x\sim P_{d}}[\log P_g(x;\theta)] = \arg\max_\theta\int_x P_d(x)\log P_g(x;\theta)dx \]</span></p>
+<p>上式恰好表示的是从 <span class="math inline">\(d\)</span> 中采样的样本基于 <span class="math inline">\(G\)</span> 的编码的度量。为凑成 <code>KL散度</code> 的形式，我们增加一项 $ _{xP_d}[P_d(x;)] <span class="math inline">\(。考虑到其为一个定值，\)</span>^*$的优化目标可以转化为： <span class="math display">\[
+\begin{align}
+\theta^*&amp;\approx\arg\max_\theta(\mathbb{E}_{x\sim P_{d}}[\log P_g(x;\theta)] - \mathbb{E}_{x\sim P_d}[\log P_d(x;\theta)]) \nonumber \\
+&amp;=\arg\max_\theta(\int_x P_{d}(x)\log P_g(x;\theta)dx-\int_x P_{d}(x)\log P_{d}(x)dx) \nonumber \\
+&amp;=\arg\min_\theta(\int_x P_{d}(x)\log P_{d}(x)dx-\int_x P_{d}(x)\log P_g(x;\theta)dx) \nonumber \\
+&amp;=\arg\min_\theta \rm{KL}(P_{d}(x)\|P_g(x;\theta))
+\end{align}
+\]</span></p>
+<h3 id="basic-idea-of-gan">Basic idea of GAN</h3>
+<p>既然说我们是很难优化 <span class="math inline">\(P_g(x;\theta)\)</span> 这个分布 (因为很难找到这样一个函数)。那么GAN是如何解决这个问题的呢？ - <code>Generator</code>: G 是一个函数，输入<span class="math inline">\(z\)</span>，输出<span class="math inline">\(x\)</span>。给定一个先验分布 <span class="math inline">\(P_{prior}(z)\)</span>，G 定义了一个概率分布 <span class="math inline">\(P_g(x)\)</span> - <code>Discrimnator</code>: 衡量 <span class="math inline">\(P_g(x)\)</span> 与 <span class="math inline">\(P_d(x)\)</span> 之间的差距大小。输入 <span class="math inline">\(x\)</span>，输出一个标量。</p>
+我们定义一个函数：<span class="math display">\[ G^*=\arg\min\limits_G\max\limits_DV(G, D) \]</span> 上面的式子该怎么理解呢？如下图。我们首先先选定一个 <span class="math inline">\(G_i\)</span> 对应一个 <span class="math inline">\(D\)</span> 的分布，<span class="math inline">\(\max\limits_D V\)</span> 从中选取该分布上值最大的点加入集合。最后，我们在所有 <span class="math inline">\(G_i\)</span> 的点中选取值最小的 <span class="math inline">\(G_i\)</span> 作目标输出。
+<center>
+<img src="/image/basic-gan-maxmin.png" width="70%">
+</center>
+<p>是不是还有点困惑，是的，我们具体定义下式： <span class="math display">\[ V=\mathbb{E}_{x\sim P_{d}}[\log D(x)] + \mathbb{E}_{x\sim P_g}[\log(1-D(x))] \]</span> 给定一个<code>G</code>，<span class="math inline">\(\max\limits_D V(G,D)\)</span>表示的是 <span class="math inline">\(P_g\)</span> 和 <span class="math inline">\(P_d\)</span>的差值。这样对于每一个 <span class="math inline">\(G_i\)</span>相当于与目标分布的最大差值，在这一系列差值中找到最小的，也就是说最好的那个 <span class="math inline">\(G_i\)</span>。换言之，在所有最差(差值最大的情况下)的情况下找一个最好的。</p>
+<p>既然我们已经有了这样一个定义，那么给定一个 <span class="math inline">\(V\)</span> 和 <span class="math inline">\(G_i\)</span> 我们该如何寻找一个最大的 <span class="math inline">\(D^*\)</span> 呢？ <span class="math display">\[
+\begin{align}
+V&amp;=\mathbb{E}_{x\sim P_{d}}[\log D(x)] + \mathbb{E}_{x\sim P_g}[\log(1-D(x))] \nonumber \\
+&amp;=\int_x P_d(x)\log D(x)dx + \int_x P_g(x)\log(1-D(x))dx \nonumber \\
+&amp;=\int_x [P_d(x)\log D(x) +P_g(x)\log(1-D(x))]dx
+\end{align}
+\]</span></p>
+<p>给定一个 <span class="math inline">\(x\)</span> 的情况下，为使上式积分内部项最大，<span class="math inline">\(D^*\)</span> 应该是多少呢？首先，<span class="math inline">\(P_d(x)\)</span> 是给定的，<span class="math inline">\(P_g(x)\)</span> 也是给定的(在某个<span class="math inline">\(G_i\)</span>的情况下)，那么上式将转变为： <span class="math display">\[
+\begin{align}
+f(D) &amp;= P_d\log(D) + P_g\log(1-D) \nonumber \\
+f&#39;(D) &amp;= \frac{P_d}{D} - \frac{P_g}{1-D} = 0 \nonumber \\
+D^*(x) &amp;= \frac{P_d(x)}{P_d(x)+P_g(x)}
+\end{align}
+\]</span></p>
+<p>我们所求得的 <span class="math inline">\(D^*\)</span> 便是上文所说的最大差值(maximum divergence)，将其带入 <span class="math inline">\(V\)</span> 中： <span class="math display">\[
+\begin{align}
+V &amp;= \mathbb{E}_{x\sim P_d}[\log\frac{P_d(x)}{P_d(x)+P_g(x)}] + \mathbb{E}_{x\sim P_g}[\log\frac{P_g(x)}{P_d(x)+P_g(x)}] \nonumber \\
+&amp;= \int_x P_d(x)\log\frac{\frac{1}{2}P_d(x)}{\frac{1}{2}(P_d(x)+P_g(x))}dx + \int_x P_g(x)\log\frac{\frac{1}{2}P_g(x)}{\frac{1}{2}(P_d(x)+P_g(x))}dx \nonumber \\
+&amp;= -2\log2+\int_x P_d(x)\log\frac{P_d(x)}{\frac{1}{2}(P_d(x)+P_g(x))}dx + \int_x P_g(x)\log\frac{P_g(x)}{\frac{1}{2}(P_d(x)+P_g(x))}dx \nonumber \\
+&amp;= -2\log2 + \rm{KL}[P_d(x)\|\frac{1}{2}(P_d(x)+P_g(x))] + \rm{KL}[P_g(x)\|\frac{1}{2}(P_d(x)+P_g(x))] 
+\end{align}
+\]</span></p>
+<p>这个结果很有意思，上式最后两项互相对称。换言之，它衡量了两个分布之间的距离（无关顺序）。此外，这个Divergence叫做 <code>Jensen-Shanno divergence</code> 简称 <code>JSD</code>，定义如下：<span class="math display">\[ \rm{JSD}(P\|Q) = \frac{1}{2}D(P\|\frac{1}{2}(P+Q)) + \frac{1}{2}D(Q\|\frac{1}{2}(P+Q)) \]</span></p>
+<p>因此，原始的GAN实际上的目标是一个JSD。因此，对于给定的 <span class="math inline">\(G_i\)</span>，最大化 <span class="math inline">\(D\)</span> 的结果为： <span class="math display">\[\max\limits_D V(G, D) = -2\log2 + 2\rm{JSD}(P_d(x)\|P_g(x))\]</span></p>
+<p>JSD的值域在 <span class="math inline">\((0, \log2)\)</span>，当 <span class="math inline">\(P_g(x)=P_d(x)\)</span> 时，JSD的值为 <span class="math inline">\(0\)</span>；反之两个分布完全不相干时，JSD的值为 <span class="math inline">\(log2\)</span>。因此，要找到最小的 <span class="math inline">\(G_i\)</span>，那么我们就需要使 <span class="math inline">\(G_i\)</span> 尽可能接近 <span class="math inline">\(P_d(x)\)</span>。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/gan/" rel="tag"># gan</a>
+            
+              <a href="/tags/theory/" rel="tag"># theory</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/2017/10/21/deep-learning/back-propagation/" rel="next" title="深度学习中的反向传播算法">
+                  <i class="fa fa-chevron-left"></i> 深度学习中的反向传播算法
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/2017/12/23/deep-learning/loss-view/" rel="prev" title="损失函数概览">
+                  损失函数概览 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc" data-target="post-toc-wrap">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc">
+            <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#最大似然估计-maximum-likelihood-estimation"><span class="nav-number">1.</span> <span class="nav-text">最大似然估计 Maximum Likelihood Estimation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kl-散度"><span class="nav-number">2.</span> <span class="nav-text">KL 散度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#basic-idea-of-gan"><span class="nav-number">3.</span> <span class="nav-text">Basic idea of GAN</span></a></li></ol></div>
+          </div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Kai JIN</p>
+  <div class="site-description motion-element" itemprop="description">Life is Wonderful!</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        
+        
+          
+        
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">categories</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+        </a>
+      </div>
+    
+  </nav>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://github.com/atranitell" title="GitHub &rarr; https://github.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="mailto:atranitell@gmail.com" title="E-Mail &rarr; mailto:atranitell@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i></a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+      
+        
+      
+        <a href="https://www.facebook.com/atranitell" title="FB Page &rarr; https://www.facebook.com/atranitell" rel="noopener" target="_blank"><i class="fa fa-fw fa-facebook"></i></a>
+      </span>
+    
+  </div>
+
+
+
+        </div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Kai JIN</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+<script src="/js/utils.js?v=7.3.0"></script>
+<script src="/js/schemes/pisces.js?v=7.3.0"></script>
+
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
