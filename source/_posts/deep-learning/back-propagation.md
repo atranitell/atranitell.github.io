@@ -22,13 +22,14 @@ $$ \nabla_{W^{(l)}}J(W,b) = \frac{\partial J(W,b)}{\partial z^{(l+1)}} \frac{\pa
 $$ \nabla_{b^{(l)}}J(W,b) = \frac{\partial J(W,b)}{\partial z^{(l+1)}} \frac{\partial z^{(l+1)}}{\partial b^{(l)}} = \delta^{(l+1)} $$
 
 那么现在的问题是如何求我们定义的新符号 $\frac{\partial J(W,b)}{\partial z^{(l+1)}} = \delta^{(l+1)}$ 呢？事实上，在这里，我们需要找到的其实是 $\delta^{(l)}$ 与 $\delta^{(l+1)}$ 的一个**关系**。只要找到这个关系，我们通过初始条件，像递推数列一样依次推导而出。
-
+$$
 \begin{align}
-  \delta^{(l)} &= \frac{\partial J(W,b)}{\partial z^{(l)}} = \frac{\partial J(W,b)}{\partial z^{(l+1)}} \frac{\partial z^{(l+1)}}{\partial z^{(l)}} \\\\
-   &= \delta^{(l+1)} \frac{\partial (W^{(l)}a^{(l)}+b^{(l)})}{\partial z^{(l)}} \\\\
-   &= \delta^{(l+1)} \frac{\partial (W^{(l)}f(z^{(l)})+b^{(l)})}{\partial z^{(l)}} \\\\
+  \delta^{(l)} &= \frac{\partial J(W,b)}{\partial z^{(l)}} = \frac{\partial J(W,b)}{\partial z^{(l+1)}} \frac{\partial z^{(l+1)}}{\partial z^{(l)}} \nonumber \\
+   &= \delta^{(l+1)} \frac{\partial (W^{(l)}a^{(l)}+b^{(l)})}{\partial z^{(l)}} \nonumber \\
+   &= \delta^{(l+1)} \frac{\partial (W^{(l)}f(z^{(l)})+b^{(l)})}{\partial z^{(l)}} \nonumber \\
    &= \delta^{(l+1)} W^{(l)}f'(z^{(l)})
 \end{align}
+$$
 
 通常而言，我们在顶层的`全连接层`后不增加激活函数。因此，顶层的输出 $z^{(top)} 直接进入`softmax-loss`层(如果是回归问题)计算`损失值`。
 
@@ -44,11 +45,13 @@ $$ W^{(n+1)} = W^{(n)} - \epsilon\nabla J^{(n)} $$
 我们考虑网络存在第 $l$ 层 和 $l+k$ 层，考虑上述公式：$ \delta^{(l)}= \delta^{(l+1)} W^{(l)}f'(z^{(l)}) $
 
 那么，从 $l$ 项递推到 $l+k$ 项：
+$$
 \begin{align} 
-  \delta^{(l)} &= \delta^{(l+1)} W^{(l)}f'(z^{(l)}) \\\\
-  &= \delta^{(l+2)} (W^{(l+1)}f'(z^{(l+1)})) (W^{(l)}f'(z^{(l)})) \\\\
-  &= \delta^{(l+k)} \prod\_{m=l}^{l+k-1}W^{(m)}f'(z^{(m)})
+  \delta^{(l)} &= \delta^{(l+1)} W^{(l)}f'(z^{(l)}) \nonumber \\
+  &= \delta^{(l+2)} (W^{(l+1)}f'(z^{(l+1)})) (W^{(l)}f'(z^{(l)})) \nonumber \\
+  &= \delta^{(l+k)} \prod_{m=l}^{l+k-1}W^{(m)}f'(z^{(m)})
 \end{align}
+$$
 
 注意，在这一步，我们推导出了第 $l+k$ 层与 $l$ 层属于连乘关系。那么如果我们的激活函数是`sigmoid：`$ S(x) = \frac{1}{1+\mathrm{e}^{-x}}$ ，情况会变得怎样呢?
 $$ S'(x) = \frac{\mathrm{e}^{-x}}{(1+\mathrm{e}^{-x})^2} = S(x)(1-S(x)) $$
