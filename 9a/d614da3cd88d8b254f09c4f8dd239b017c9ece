@@ -1,0 +1,28 @@
+homepage-assets/app.js
+  s_d865a251cf97c9::t_4e61f42508fc95 1-188
+homepage-assets/favicon.svg
+  s_d865a251cf97c9::t_6bdb3725b9ca50 1
+homepage-assets/fonts/OFL-STIX.txt
+  s_d865a251cf97c9::t_0f7c6cc80b3c71 1-93
+homepage-assets/styles.css
+  s_d865a251cf97c9::t_5288f8fcb3e40e 1-64
+index.html
+  s_d865a251cf97c9::t_40c4153a8ae128 1,5-13,15-24,26-37,39-77,79-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "9ad614da3cd88d8b254f09c4f8dd239b017c9ece",
+  "prompts": {},
+  "logical_commit_id": "9ad614da3cd88d8b254f09c4f8dd239b017c9ece",
+  "sessions": {
+    "s_d865a251cf97c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a180ce-fb2e-7933-adb6-fd72418f76f5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "jinkai <jinkai@bigo.sg>"
+    }
+  }
+}
