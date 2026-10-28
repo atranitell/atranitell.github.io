@@ -54,11 +54,72 @@ h2{font-size:22px;line-height:1.3}
 }
 @media(max-width:360px){.page{padding-inline:12px}.profile-links{font-size:13px}.certificate-controls{gap:9px}.certificate-controls>a{font-size:10.5px}}
 
-/* A shared reading column and a scientific-publishing text family. */
-@font-face{font-family:"STIX Two Text";src:url("./fonts/stix-two-text-roman.ttf") format("truetype");font-style:normal;font-weight:400 700;font-display:swap}
-@font-face{font-family:"STIX Two Text";src:url("./fonts/stix-two-text-italic.ttf") format("truetype");font-style:italic;font-weight:400 700;font-display:swap}
-:root{--academic:"STIX Two Text",Georgia,"Times New Roman",serif}
-body{font-family:var(--academic);font-kerning:normal;font-optical-sizing:auto}
+/* Screen-focused academic typography with a shared reading column. */
+@font-face{font-family:"Source Serif 4";src:url("./fonts/source-serif-4-latin-variable.woff2") format("woff2");font-style:normal;font-weight:400 700;font-display:swap}
+@font-face{font-family:"Inter";src:url("./fonts/inter-latin-variable.woff2") format("woff2");font-style:normal;font-weight:400 700;font-display:swap}
+:root{--reading:"Source Serif 4",Georgia,serif;--interface:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--text:#303236;--muted:#62676e}
+body{font-family:var(--reading);font-size:16.5px;font-weight:400;font-kerning:normal;font-optical-sizing:auto}
 .page>header,.page>section,.page>footer,.page>hr{width:100%;max-width:940px;margin-left:auto;margin-right:auto}
-.profile h1,h2,.patent-group-title{font-weight:600;letter-spacing:0}
-.venue{font-style:italic}
+.profile h1{font-family:var(--reading);font-size:35px;font-weight:550;line-height:1.2;letter-spacing:-.025em;color:#22272d}
+.biography p{font-size:16.5px;line-height:1.45;letter-spacing:0}
+.biography strong{font-weight:550}
+h2,.patent-group-title,.publication h3,.award-row h3{font-family:var(--interface);font-optical-sizing:auto;letter-spacing:-.015em;color:#252a30}
+h2{font-size:20.5px;font-weight:550;line-height:1.35}
+.publication h3{font-size:16px;font-weight:550;line-height:1.4;letter-spacing:-.012em}
+.affiliation,.profile-links,.publication-toolbar,.paper-topline,.paper-authors,.paper-links,.publication-note,.section-intro,.patent-list,.patent-note,.news-list dt,.award-row time,.award-row p,.award-tracks,.award-row>button,.award-note,.site-footer,.copy-status,.section-number,.certificate-controls,.certificate-figure figcaption{font-family:var(--interface);font-optical-sizing:auto;letter-spacing:0}
+.affiliation{font-size:13px;line-height:1.45;color:#62676e;margin-top:6px}
+.profile-links{font-size:13px;line-height:1.5}
+.news-list{font-size:14.5px;line-height:1.5}
+.news-list dt{font-size:12px;line-height:1.75;color:#69717a}
+.news-list dd{line-height:1.45}
+.publication-toolbar{font-size:12.5px}
+.paper-topline{font-size:12.5px;line-height:1.45;color:#60666f}
+.venue{font-style:normal;color:#60666f}
+.paper-award{font-size:11.5px;font-weight:450;color:#88664a}
+.publication .paper-authors{font-family:var(--interface);font-size:12.5px;font-weight:400;line-height:1.45;color:#626b75;margin-bottom:6px}
+.paper-authors strong{font-weight:550;color:#3c454f}
+.publication .paper-summary{font-size:15px;line-height:1.45;color:#4b5159}
+.paper-links{font-size:12px;line-height:1.5}
+.publication-note{font-size:10.5px;line-height:1.55;color:#72777e}
+.patent-group-title{font-size:14px;font-weight:550;line-height:1.4;letter-spacing:0}
+.patent-list{font-size:13.5px}
+.patent-list li>a{font-size:13.5px;font-weight:450}
+.patent-list p{font-size:11.5px;line-height:1.55;color:#68717b}
+.patent-list p strong{font-weight:450;color:#4e5965}
+.patent-note{font-size:10px;line-height:1.5}
+.award-row h3{font-size:14px;font-weight:500;line-height:1.45;letter-spacing:-.005em}
+.award-row time{font-size:12px;line-height:1.65;color:#69717a}
+.award-row p{font-size:11px;line-height:1.5}
+.award-tracks,.award-row>button{font-size:12px;line-height:1.5}
+.award-note{font-size:10px;line-height:1.5}
+.contact-section p{font-size:15px;line-height:1.45}
+.site-footer{font-size:10.5px;color:#72777e}
+.copy-status{font-size:11px;line-height:1.5}
+.dialog-inner h2,.certificate-heading h2{font-family:var(--interface);font-weight:550;letter-spacing:-.015em}
+.certificate-heading h2{font-size:19px;line-height:1.4}
+.certificate-figure figcaption,.certificate-controls,.certificate-controls>span,.certificate-controls>a{font-size:12px;line-height:1.5}
+.bib-dialog pre{font-family:"SFMono-Regular",Consolas,monospace;font-size:11.5px;line-height:1.55}
+@media(max-width:620px){
+ .profile h1{font-size:32px}
+ .biography p{font-size:15.5px;line-height:1.45}
+ .affiliation{font-size:12px}
+ .profile-links{font-size:12px;line-height:1.6}
+ h2{font-size:19px}
+ .news-list{font-size:13.5px}
+ .news-list dt{font-size:11px;line-height:1.8}
+ .publication h3{font-size:15.5px;line-height:1.4}
+ .paper-topline{font-size:11.5px;line-height:1.45}
+ .paper-award{font-size:10.5px}
+ .publication .paper-authors{font-size:11.5px;line-height:1.5}
+ .publication .paper-summary{font-size:14.5px;line-height:1.45}
+ .publication-toolbar,.paper-links{font-size:11.5px}
+ .patent-list,.patent-list li>a{font-size:13px}
+ .patent-list p{font-size:11px;line-height:1.55}
+ .award-row h3{font-size:13.5px;line-height:1.45}
+ .award-row time{font-size:11.5px}
+ .award-row p{font-size:10.5px}
+ .award-tracks,.award-row>button{font-size:11.5px;line-height:1.5}
+ .contact-section p{font-size:14.5px}
+ .certificate-heading h2{font-size:16px}
+ .certificate-figure figcaption,.certificate-controls,.certificate-controls>span,.certificate-controls>a{font-size:11px}
+}
