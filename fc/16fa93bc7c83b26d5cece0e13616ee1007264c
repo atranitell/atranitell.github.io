@@ -1,0 +1,26 @@
+homepage-assets/fonts/OFL-Inter.txt
+  s_d865a251cf97c9::t_dd2549ac85ad85 1,5
+homepage-assets/fonts/OFL-SourceSerif4.txt
+  s_d865a251cf97c9::t_3de961350a03f8 1-93
+homepage-assets/styles.css
+  s_d865a251cf97c9::t_528b68eef98171 57-61,63-125
+index.html
+  s_d865a251cf97c9::t_3b2c941c00faf6 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "fc16fa93bc7c83b26d5cece0e13616ee1007264c",
+  "prompts": {},
+  "logical_commit_id": "fc16fa93bc7c83b26d5cece0e13616ee1007264c",
+  "sessions": {
+    "s_d865a251cf97c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a180ce-fb2e-7933-adb6-fd72418f76f5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "jinkai <jinkai@bigo.sg>"
+    }
+  }
+}
